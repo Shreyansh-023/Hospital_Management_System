@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Patient Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+
+<body style="background-color: #E0FF4F;">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header text-center">
+                        <h4>Welcome, <span id="patientName"> {{patient.name}} </span></h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <h5>Patient Information</h5>
+                            <p><strong>Name:</strong> <span id="patientFullName"> {{patient.name}} </span></p>
+                            <p><strong>Age:</strong> <span id="patientAge">{{patient.age}}</span></p>
+                            <p><strong>Gender:</strong> <span id="patientGender"> {{patient.gender}} </span></p>
+                            <p><strong>Contact Number:</strong> <span id="patientContact">{{patient.contact_number}}
+                                </span></p>
+                            <p><strong>Address:</strong> <span id="patientAddress">{{patient.address}}</span></p>
+                        </div>
+
+                        {% if patient_appointment_available|length == 0 %}
+                        <p>No Doctor available</p>
+                        {% else %}
+                        <div class="mb-4">
+                            <h5>Appointment Available</h5>
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Doctor</th>
+                                        <th>Specialization</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for pi in patient_appointment_available %}
+                                    <tr>
+                                        <td>{{ pi.name }}</td>
+                                        <td>{{ pi.specialization }}</td>
+                                        <td>
+                                            <button class="btn btn-success btn-sm" onclick="handleRequest(this)"
+                                                data-patient-id="{{ patient.id }}" data-doctor-id="{{ pi.id }}">
+                                                Send Request
+                                            </button>
+                                        </td>
+
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endif %}
+
+                        {% if patient_appointment|length == 0 %}
+                        <p>No Appointment available</p>
+                        {% else %}
+                        <div class="mb-4">
+                            <h5>Appointment Status</h5>
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Appointment id</th>
+                                        <th>Doctor id</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for pi in patient_appointment %}
+                                    <tr>
+                                        <td>{{ pi.id }}</td>
+                                        <td>{{ pi.doctor_id }}</td>
+                                        <td>{{ pi.appointment_date }}</td>
+                                        <td>{{ pi.status }}</td>
+
+
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-4 text-center">
+                            <button class="btn btn-warning" data-bs-toggle="modal"
+                                data-bs-target="#updatePatientInfoModal">Update Information</button>
+                        </div>
+
+                        <div class="text-center">
+                            <button class="btn btn-danger" onclick="logout()">Logout</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function handleRequest(button) {
+            event.preventDefault();  // Prevents page reload
+
+            // Disable the button to prevent multiple clicks
+            button.disabled = true;
+            button.innerText = 'Request Sent';  // Optionally, change the button text to indicate it's been clicked
+
+            // Extract patient_id and doctor_id from button attributes
+            let patient_id = button.getAttribute("data-patient-id");
+            let doctor_id = button.getAttribute("data-doctor-id");
+
+            let requestData = {
+                patient_id: patient_id,
+                doctor_id: doctor_id
+            };
+
+            // Send request to Flask backend
+            fetch('/add_appointment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("Appointment request sent successfully!");
+                        window.location.reload();
+                    } else {
+                        alert("Error sending request.");
+                        // Re-enable the button in case of error
+                        button.disabled = false;
+                        button.innerText = 'Send Request';
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    // Re-enable the button in case of error
+                    button.disabled = false;
+                    button.innerText = 'Send Request';
+                });
+        }
+
+
+        function logout() {
+            window.location.href = '/'; // Example redirect to login page
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
