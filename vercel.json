@@ -1,11 +1,25 @@
 {
-    "version":2,
-    "builds":[
-        { "src":"app.py","use":"@vercel/python"}
-
+    "version": 2,
+    "builds": [
+        {
+            "src": "app.py",
+            "use": "@vercel/python"
+        }
     ],
     "routes": [
-        {"src":"/(.*)","dest" :"app.py"}
-    ]
-
+        {
+            "src": "/(.*)",
+            "dest": "app.py"
+        }
+    ],
+    "build": {
+        "env": {
+            "CARGO_HOME": "/tmp/cargo"
+        },
+        "commands": [
+            "curl https://sh.rustup.rs -sSf | sh -s -- -y",
+            "export PATH=$HOME/.cargo/bin:$PATH",
+            "pip install --disable-pip-version-check --target . --upgrade -r requirements.txt"
+        ]
+    }
 }
